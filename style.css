@@ -22,11 +22,13 @@
   -webkit-user-select: none;
 }
 
-body {
+html, body {
   font-family: 'Nunito', sans-serif;
   background: #0d1b2a;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -34,6 +36,8 @@ body {
   align-items: center;
   justify-content: center;
   color: #fff;
+  touch-action: none;
+  -webkit-touch-callout: none;
 }
 
 /* O'yin konteyneri - Butun ekran (Full Screen) */
@@ -42,7 +46,10 @@ body {
   top: 0;
   left: 0;
   width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
   background: radial-gradient(circle at center, #1b263b 0%, #0d1b2a 70%, #050b14 100%);
   border-radius: 0;
   box-shadow: none;
@@ -166,6 +173,37 @@ body {
   display: flex;
   gap: 8px;
   pointer-events: auto;
+  align-items: center;
+}
+
+.desktop-only {
+  display: flex;
+}
+
+.burger-menu-btn {
+  display: none;
+  background: linear-gradient(180deg, #ffb703, #fb8500);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  transition: transform 0.15s ease, filter 0.15s ease;
+  line-height: 1;
+}
+
+.burger-menu-btn:hover {
+  transform: scale(1.08);
+  filter: brightness(1.15);
+}
+
+.burger-menu-btn:active {
+  transform: scale(0.92);
 }
 
 .hud-btn {
@@ -507,293 +545,582 @@ body {
   color: #bb3e03;
 }
 
-/* Mobil boshqaruv tugmalari (Ergonomic On-screen touch controls) */
-#mobile-controls {
+/* ==========================================
+   BURGER MENU (MOBILE DRAWER & MODAL)
+   ========================================== */
+.burger-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.burger-menu-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.burger-menu-backdrop {
   position: absolute;
-  bottom: max(16px, env(safe-area-inset-bottom, 16px));
-  left: max(16px, env(safe-area-inset-left, 16px));
-  right: max(16px, env(safe-area-inset-right, 16px));
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(8, 14, 24, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.burger-menu-drawer {
+  position: relative;
+  background: linear-gradient(180deg, #2b1810 0%, #170d08 100%);
+  border: 3.5px solid var(--primary-gold);
+  border-radius: 24px;
+  padding: 20px 22px;
+  width: 90%;
+  max-width: 390px;
+  max-height: 88dvh;
+  overflow-y: auto;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 24px rgba(249, 199, 79, 0.3);
+  transform: scale(0.92) translateY(16px);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: #fff;
+  z-index: 2;
+}
+
+.burger-menu-overlay.active .burger-menu-drawer {
+  transform: scale(1) translateY(0);
+}
+
+.burger-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(249, 199, 79, 0.25);
+}
+
+.burger-menu-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.35rem;
+  color: var(--primary-gold);
+  letter-spacing: 0.5px;
+}
+
+.burger-menu-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.bm-item-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(249, 199, 79, 0.35);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  font-family: 'Nunito', sans-serif;
+  width: 100%;
+}
+
+.bm-item-btn:hover, .bm-item-btn:active {
+  background: rgba(249, 199, 79, 0.18);
+  border-color: var(--primary-gold);
+  transform: translateX(4px);
+}
+
+.bm-item-icon {
+  font-size: 1.45rem;
+  min-width: 32px;
+  text-align: center;
+}
+
+.bm-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bm-item-title {
+  font-weight: 800;
+  font-size: 0.98rem;
+  color: #fff;
+}
+
+.bm-item-sub {
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 1px;
+}
+
+.bm-item-arrow {
+  font-size: 1.25rem;
+  color: var(--primary-gold);
+  font-weight: 800;
+}
+
+.bm-switch {
+  width: 44px;
+  height: 24px;
+  background: #4b5563;
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.bm-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+
+.bm-switch.on {
+  background: #22c55e;
+}
+
+.bm-switch.on::after {
+  transform: translateX(20px);
+}
+
+.help-dialog-box {
+  max-width: 520px;
+  text-align: left;
+}
+
+.help-content-scroll {
+  max-height: 60dvh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.help-section {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1.5px solid rgba(93, 64, 55, 0.2);
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #3e2723;
+}
+
+/* ==========================================
+   MOBIL BOSHQARUV TUGMALARI (ERGONOMIC GAMEPAD)
+   ========================================== */
+#mobile-controls {
+  position: fixed;
+  bottom: max(12px, env(safe-area-inset-bottom, 12px));
+  left: max(12px, env(safe-area-inset-left, 12px));
+  right: max(12px, env(safe-area-inset-right, 12px));
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   pointer-events: none;
-  z-index: 25;
+  z-index: 40;
+  touch-action: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Modallar faol paytda yashirish */
+#mobile-controls.is-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(24px);
 }
 
 .touch-btn-group {
   display: flex;
-  gap: 14px;
   pointer-events: auto;
+  align-items: flex-end;
+}
+
+.touch-dpad {
+  display: flex;
+  gap: 12px;
+}
+
+.touch-actions {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
 }
 
 .touch-btn {
-  width: 66px;
-  height: 66px;
-  background: rgba(30, 18, 12, 0.88);
-  border: 3px solid var(--primary-gold);
-  border-radius: 20px;
-  color: #fff;
-  font-size: 1.8rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  transition: transform 0.08s ease, background 0.08s ease, box-shadow 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease, filter 0.08s ease, box-shadow 0.08s ease;
 }
 
-.touch-btn:active, .touch-btn.active {
-  transform: scale(0.92);
-  background: rgba(249, 199, 79, 0.9);
-  color: #000;
-  border-color: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+/* D-Pad tugmalari: Chapga va O'ngga */
+.touch-btn-nav {
+  width: 66px;
+  height: 66px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #2d1e14 0%, #150c07 100%);
+  border: 2.5px solid var(--primary-gold);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.65), inset 0 2px 4px rgba(255, 255, 255, 0.15);
+  color: var(--primary-gold);
 }
 
-/* Qilich zarbasi tugmasi */
-.touch-btn-attack {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #fb8500, #d90429);
-  border: 3px solid #ffbe0b;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6), 0 0 12px rgba(251, 133, 0, 0.5);
-}
-
-.touch-btn-attack .jump-arrow {
-  font-size: 1.5rem;
+.touch-btn-nav .touch-icon {
+  font-size: 2rem;
   line-height: 1;
+  font-weight: 900;
 }
 
-.touch-btn-attack .jump-text {
-  font-family: 'Fredoka One', cursive;
-  font-size: 0.62rem;
-  letter-spacing: 0.5px;
-  margin-top: 2px;
+.touch-btn-nav:active, .touch-btn-nav.active {
+  transform: scale(0.91);
+  background: linear-gradient(145deg, #f9c74f, #d48b10);
+  color: #170d08;
+  border-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 14px rgba(249, 199, 79, 0.6);
+}
+
+/* Zarba tugmasi (Olovli / Yulduz Zarbasi) */
+.touch-btn-attack {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fb8500 0%, #d90429 100%);
+  border: 3px solid #ffbe0b;
+  box-shadow: 0 8px 18px rgba(251, 133, 0, 0.55), inset 0 2px 4px rgba(255, 255, 255, 0.35);
   color: #fff;
 }
 
-.touch-btn-attack:active, .touch-btn-attack.active {
-  background: linear-gradient(135deg, #ffb703, #fb8500);
-  transform: scale(0.94);
-}
-
-/* Sakrash tugmasi (Katta, qulay qizil tugma) */
-.touch-btn-jump {
-  width: 82px;
-  height: 82px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #e63946, #c1121f);
-  border: 3px solid #ffbe0b;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6), 0 0 12px rgba(230, 57, 70, 0.5);
-}
-
-.touch-btn-jump .jump-arrow {
-  font-size: 1.6rem;
+.touch-btn-attack .touch-act-icon {
+  font-size: 1.55rem;
   line-height: 1;
 }
 
-.touch-btn-jump .jump-text {
+.touch-btn-attack .touch-act-text {
+  font-family: 'Fredoka One', cursive;
+  font-size: 0.64rem;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.touch-btn-attack:active, .touch-btn-attack.active {
+  transform: scale(0.91);
+  background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7), 0 0 16px rgba(251, 133, 0, 0.8);
+}
+
+/* Sakrash tugmasi (Katta tezkor qizil tugma) */
+.touch-btn-jump {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ef233c 0%, #b91c1c 100%);
+  border: 3.5px solid #ffbe0b;
+  box-shadow: 0 8px 20px rgba(239, 35, 60, 0.6), inset 0 3px 6px rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.touch-btn-jump .touch-act-icon {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.touch-btn-jump .touch-act-text {
   font-family: 'Fredoka One', cursive;
   font-size: 0.68rem;
   letter-spacing: 0.5px;
   margin-top: 2px;
-  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
 }
 
 .touch-btn-jump:active, .touch-btn-jump.active {
-  background: linear-gradient(135deg, #ff758f, #e63946);
-  color: #fff;
-  transform: scale(0.94);
+  transform: scale(0.91);
+  background: linear-gradient(135deg, #ff758f 0%, #ef233c 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 18px rgba(239, 35, 60, 0.85);
 }
 
-/* Telefonni yonboshga burish maslahati (Portret rejim) */
-.rotate-hint-overlay {
+/* Telefonni yonboshga burish maslahati (Portret rejimda nozik toast) */
+.rotate-hint-pill {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(13, 27, 42, 0.96);
-  z-index: 100;
-  display: none;
+  top: max(68px, env(safe-area-inset-top, 68px));
+  left: 50%;
+  transform: translateX(-50%) translateY(-30px);
+  background: rgba(22, 13, 8, 0.94);
+  border: 1.5px solid var(--primary-gold);
+  border-radius: 24px;
+  padding: 6px 14px;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 24px;
-  text-align: center;
-}
-
-.rotate-hint-box {
-  background: linear-gradient(180deg, #fefae0 0%, #faedcd 100%);
-  border: 4px solid var(--wood-dark);
-  border-radius: 20px;
-  padding: 24px 20px;
-  color: var(--wood-dark);
-  max-width: 320px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
-}
-
-.rotate-icon {
-  font-size: 3rem;
-  margin-bottom: 12px;
-  animation: tiltPhone 2s infinite ease-in-out;
-}
-
-@keyframes tiltPhone {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(-90deg); }
-}
-
-.rotate-hint-box h2 {
-  font-family: 'Fredoka One', cursive;
-  font-size: 1.35rem;
-  color: #9a031e;
-  margin-bottom: 8px;
-}
-
-.rotate-hint-box p {
-  font-size: 0.95rem;
+  gap: 8px;
+  z-index: 60;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  max-width: 92%;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: #583101;
-  margin-bottom: 16px;
-  line-height: 1.4;
+  color: #fefae0;
 }
 
-.dismiss-btn {
-  background: #3e2723;
-  color: #fff;
+.rotate-hint-pill.show-hint {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.rotate-hint-icon {
+  font-size: 1.15rem;
+}
+
+.rotate-hint-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rotate-hint-close {
+  background: transparent;
   border: none;
-  padding: 8px 18px;
-  border-radius: 20px;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 800;
-  font-size: 0.85rem;
+  color: var(--primary-gold);
+  font-size: 0.95rem;
   cursor: pointer;
+  padding: 2px 6px;
+  font-weight: 900;
 }
 
 /* ==========================================
-   MOBIL RESPONSIVE MEDIA QUERIES
+   MOBIL RESPONSIVE MEDIA QUERIES (FULL MOBILE VIEW)
    ========================================== */
 
-/* Faqat Portret mobil qurilmalarda maslahatni ko'rsatish */
-@media (orientation: portrait) and (max-width: 850px) {
-  .rotate-hint-overlay.show-hint {
-    display: flex;
+@media (max-width: 850px) {
+  /* Header: secondary tugmalar burger menyu ichiga yashiriladi */
+  .desktop-only {
+    display: none !important;
   }
-}
 
-/* Kichik ekranlar (Smartfonlar va kichik planshetlar) */
-@media (max-width: 768px), (max-height: 500px) {
+  .burger-menu-btn {
+    display: flex !important;
+  }
+
   #hud {
     top: max(6px, env(safe-area-inset-top, 6px));
     left: max(8px, env(safe-area-inset-left, 8px));
     right: max(8px, env(safe-area-inset-right, 8px));
   }
 
+  .hud-left {
+    gap: 5px;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
   .hud-panel {
-    padding: 4px 8px;
-    font-size: 0.82rem;
+    padding: 3px 8px;
+    font-size: 0.76rem;
     gap: 4px;
+    border-radius: 16px;
     border-width: 1.5px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    white-space: nowrap;
   }
 
   .hud-icon {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
+  }
+
+  .p-badge {
+    font-size: 0.72rem;
+    padding: 2px 6px;
   }
 
   .hud-btn {
-    width: 34px;
-    height: 34px;
-    font-size: 0.9rem;
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
   }
 
+  /* Modallar va dialoglar responsive moslashishi */
   .dialog-box {
-    padding: 16px 20px;
+    padding: 16px 18px;
     max-width: 95%;
-    max-height: 88vh;
-    overflow-y: auto;
+    max-height: 88dvh;
     border-width: 4px;
+    border-radius: 18px;
   }
 
   .dialog-box h1 {
-    font-size: 1.6rem;
+    font-size: 1.45rem;
+    margin-bottom: 6px;
   }
 
   .dialog-box h2 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
   }
 
   .subtitle {
-    font-size: 0.88rem;
-    margin-bottom: 10px;
+    font-size: 0.84rem;
+    margin-bottom: 12px;
   }
 
   .rules-card {
-    padding: 10px 14px;
-    font-size: 0.82rem;
-    margin-bottom: 14px;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    margin-bottom: 12px;
   }
 
-  .controls-hint {
-    display: none; /* Mobil ekranda klaviatura maslahati shart emas */
+  .rules-card li {
+    margin-bottom: 5px;
   }
 
   .btn-primary {
-    font-size: 1.1rem;
-    padding: 10px 24px;
+    font-size: 1rem;
+    padding: 9px 20px;
   }
 
-  .score-badge {
-    font-size: 1.2rem;
-    padding: 6px 14px;
-    margin: 10px auto 14px auto;
+  .mode-btn {
+    font-size: 0.82rem;
+    padding: 8px 14px;
   }
 
   .players-controls-card {
     grid-template-columns: 1fr;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
   .player-control-box {
     padding: 8px 10px;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
   }
 
-  .touch-btn {
-    width: 54px;
-    height: 54px;
-    font-size: 1.4rem;
+  /* Bosqichlar tanlash paneli mobil ko'rinish */
+  .levels-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    max-height: 52dvh;
+  }
+
+  .level-card {
+    padding: 8px 4px;
+    border-radius: 12px;
+  }
+
+  .level-card-num {
+    font-size: 1.1rem;
+  }
+
+  .level-card-name {
+    font-size: 0.68rem;
+  }
+}
+
+/* Portret rejimida o'yin maydoni va boshqaruv joylashuvi */
+@media (orientation: portrait) and (max-width: 850px) {
+  #game-container {
+    justify-content: flex-start;
+    padding-top: max(48px, env(safe-area-inset-top, 48px));
+  }
+
+  #mobile-controls {
+    bottom: max(20px, env(safe-area-inset-bottom, 20px));
+  }
+}
+
+/* Kichik ekranli smartfonlar (max-width: 480px) */
+@media (max-width: 480px) {
+  .touch-btn-nav {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+  }
+
+  .touch-btn-nav .touch-icon {
+    font-size: 1.6rem;
   }
 
   .touch-btn-attack {
-    width: 62px;
-    height: 62px;
+    width: 60px;
+    height: 60px;
   }
 
-  .touch-btn-attack .jump-arrow {
-    font-size: 1.25rem;
+  .touch-btn-attack .touch-act-icon {
+    font-size: 1.3rem;
   }
 
-  .touch-btn-attack .jump-text {
-    font-size: 0.55rem;
+  .touch-btn-attack .touch-act-text {
+    font-size: 0.56rem;
   }
 
   .touch-btn-jump {
-    width: 66px;
-    height: 66px;
+    width: 70px;
+    height: 70px;
   }
 
-  .touch-btn-jump .jump-arrow {
-    font-size: 1.35rem;
+  .touch-btn-jump .touch-act-icon {
+    font-size: 1.45rem;
   }
 
-  .touch-btn-jump .jump-text {
-    font-size: 0.58rem;
+  .touch-btn-jump .touch-act-text {
+    font-size: 0.6rem;
+  }
+
+  .touch-btn-group {
+    gap: 10px;
+  }
+
+  .touch-dpad {
+    gap: 8px;
+  }
+
+  .levels-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .hud-panel {
+    padding: 2px 6px;
+    font-size: 0.72rem;
+  }
+
+  .p-badge {
+    padding: 1px 4px;
+    font-size: 0.68rem;
+  }
+
+  #key-display {
+    font-size: 0.72rem;
   }
 }
 

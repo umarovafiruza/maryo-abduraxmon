@@ -492,8 +492,18 @@ function resizeCanvas() {
   const winW = window.innerWidth || (document.documentElement ? document.documentElement.clientWidth : 960) || 960;
   const winH = window.innerHeight || (document.documentElement ? document.documentElement.clientHeight : 540) || 540;
 
+  const isPortrait = winH > winW && winW <= 850;
+
   // 16:9 proporsiyani saqlash (ekranning cho'zilib ketmasligi uchun)
-  const scale = Math.max(0.25, Math.min(winW / GAME_WIDTH, winH / GAME_HEIGHT));
+  let scale;
+  if (isPortrait) {
+    // Portret rejimida canvas yuqorida to'liq va aniq ko'rinadi, pastda kontrollerlar uchun qulay maydon qoladi
+    scale = Math.max(0.25, Math.min(winW / GAME_WIDTH, (winH * 0.58) / GAME_HEIGHT));
+  } else {
+    // Gorizontal (Landscape) yoki desktopda 16:9 to'liq ekranni qamrab oladi
+    scale = Math.max(0.25, Math.min(winW / GAME_WIDTH, winH / GAME_HEIGHT));
+  }
+
   displayWidth = Math.round(GAME_WIDTH * scale);
   displayHeight = Math.round(GAME_HEIGHT * scale);
 
@@ -538,6 +548,40 @@ const openLevelsBtn = document.getElementById('open-levels-btn');
 const levelsScreen = document.getElementById('levels-screen');
 const levelsGrid = document.getElementById('levels-grid');
 const closeLevelsBtn = document.getElementById('close-levels-btn');
+
+// Burger Menyu elementlari (Mobil)
+const burgerMenuBtn = document.getElementById('burger-menu-btn');
+const burgerMenuModal = document.getElementById('burger-menu-modal');
+const burgerMenuBackdrop = document.getElementById('burger-menu-backdrop');
+const closeBurgerBtn = document.getElementById('close-burger-btn');
+const bmResumeBtn = document.getElementById('bm-resume-btn');
+const bmLevelsBtn = document.getElementById('bm-levels-btn');
+const bmSoundBtn = document.getElementById('bm-sound-btn');
+const bmSoundIcon = document.getElementById('bm-sound-icon');
+const bmSoundTitle = document.getElementById('bm-sound-title');
+const bmSoundSwitch = document.getElementById('bm-sound-switch');
+const bmFullscreenBtn = document.getElementById('bm-fullscreen-btn');
+const bmFullscreenIcon = document.getElementById('bm-fullscreen-icon');
+const bmFullscreenTitle = document.getElementById('bm-fullscreen-title');
+const bmRestartBtn = document.getElementById('bm-restart-btn');
+const bmModeBtn = document.getElementById('bm-mode-btn');
+const bmModeIcon = document.getElementById('bm-mode-icon');
+const bmModeTitle = document.getElementById('bm-mode-title');
+const bmModeSub = document.getElementById('bm-mode-sub');
+const bmHelpBtn = document.getElementById('bm-help-btn');
+
+// Yordam (Help) modali elementlari
+const helpModal = document.getElementById('help-modal');
+const closeHelpBtn = document.getElementById('close-help-btn');
+const helpOkBtn = document.getElementById('help-ok-btn');
+
+// Mobil Boshqaruv elementlari
+const mobileControls = document.getElementById('mobile-controls');
+const touchDpad = document.querySelector('.touch-dpad');
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
+const btnAttack = document.getElementById('btn-attack');
+const btnJump = document.getElementById('btn-jump');
 
 const startScreen = document.getElementById('start-screen');
 const startBtn = document.getElementById('start-btn');
@@ -587,32 +631,40 @@ const quizQuestionText = document.getElementById('quiz-question-text');
 const quizOptionsContainer = document.getElementById('quiz-options-container');
 const quizFeedbackBox = document.getElementById('quiz-feedback-box');
 
-// Sensorli boshqaruv tugmalari (Mobil)
-const btnLeft = document.getElementById('btn-left');
-const btnRight = document.getElementById('btn-right');
-const btnAttack = document.getElementById('btn-attack');
-const btnJump = document.getElementById('btn-jump');
-
 // O'yin rejimi (2P yoki 1P)
 let gameMode = '2P';
+
+function setGameMode(mode) {
+  gameMode = mode;
+  if (mode === '2P') {
+    if (mode2pBtn) mode2pBtn.classList.add('active');
+    if (mode1pBtn) mode1pBtn.classList.remove('active');
+    if (p2ControlsCard) p2ControlsCard.style.display = 'block';
+    if (p2Hud) p2Hud.style.display = 'flex';
+    if (bmModeTitle) bmModeTitle.textContent = 'Rejim: 2 O‘yinchi';
+    if (bmModeSub) bmModeSub.textContent = 'Mario & Luigi (2P)';
+    if (bmModeIcon) bmModeIcon.textContent = '🍄';
+  } else {
+    if (mode1pBtn) mode1pBtn.classList.add('active');
+    if (mode2pBtn) mode2pBtn.classList.remove('active');
+    if (p2ControlsCard) p2ControlsCard.style.display = 'none';
+    if (p2Hud) p2Hud.style.display = 'none';
+    if (bmModeTitle) bmModeTitle.textContent = 'Rejim: 1 O‘yinchi';
+    if (bmModeSub) bmModeSub.textContent = 'Mario Yakkaxon (1P)';
+    if (bmModeIcon) bmModeIcon.textContent = '🔴';
+  }
+  updateHUD();
+}
 
 if (mode2pBtn && mode1pBtn) {
   mode2pBtn.addEventListener('click', () => {
     sound.init();
-    gameMode = '2P';
-    mode2pBtn.classList.add('active');
-    mode1pBtn.classList.remove('active');
-    if (p2ControlsCard) p2ControlsCard.style.display = 'block';
-    if (p2Hud) p2Hud.style.display = 'flex';
+    setGameMode('2P');
   });
 
   mode1pBtn.addEventListener('click', () => {
     sound.init();
-    gameMode = '1P';
-    mode1pBtn.classList.add('active');
-    mode2pBtn.classList.remove('active');
-    if (p2ControlsCard) p2ControlsCard.style.display = 'none';
-    if (p2Hud) p2Hud.style.display = 'none';
+    setGameMode('1P');
   });
 }
 
@@ -700,49 +752,205 @@ window.addEventListener('keyup', (e) => {
   }
 });
 
-function setupTouchButton(button, keyName, isAttack = false) {
-  if (!button) return;
-  const activate = (e) => {
-    e.preventDefault();
-    sound.init();
-    keysP1[keyName] = true;
-    button.classList.add('active');
-    if (keyName === 'jump' && gameState === 'PLAYING' && player1) {
-      player1.tryJump();
-    }
-    if (isAttack && gameState === 'PLAYING' && player1) {
-      player1.tryAttack();
-    }
-  };
-  const deactivate = (e) => {
-    e.preventDefault();
-    keysP1[keyName] = false;
-    button.classList.remove('active');
-  };
+// ==========================================
+// 2. MOBIL BOSHQARUV VA INTERFEYS MENEJERI
+// ==========================================
 
-  button.addEventListener('touchstart', activate, { passive: false });
-  button.addEventListener('touchend', deactivate, { passive: false });
-  button.addEventListener('touchcancel', deactivate, { passive: false });
-  button.addEventListener('mousedown', activate);
-  button.addEventListener('mouseup', deactivate);
-  button.addEventListener('mouseleave', deactivate);
+function updateMobileControlsVisibility() {
+  if (!mobileControls) return;
+  const isPlaying = (gameState === 'PLAYING');
+  const isAnyModalActive = document.querySelector('.screen-overlay.active, .burger-menu-overlay.active');
+  if (isPlaying && !isAnyModalActive) {
+    mobileControls.classList.remove('is-hidden');
+  } else {
+    mobileControls.classList.add('is-hidden');
+  }
 }
 
-setupTouchButton(btnLeft, 'left');
-setupTouchButton(btnRight, 'right');
-setupTouchButton(btnAttack, 'attack', true);
-setupTouchButton(btnJump, 'jump');
+// Ergonomik Multi-Touch D-Pad va Harakat tugmalari
+function setupMobileControls() {
+  if (!mobileControls) return;
 
-// Mobil ekran orientatsiyasini tekshirish (Landscape maslahati)
+  // 1. D-Pad (Chapga va O'ngga harakatlanish)
+  if (touchDpad && btnLeft && btnRight) {
+    let dpadTouchId = null;
+
+    const processDpadPosition = (clientX, clientY) => {
+      const leftRect = btnLeft.getBoundingClientRect();
+      const rightRect = btnRight.getBoundingClientRect();
+
+      const isLeft = (clientX >= leftRect.left - 25 && clientX <= leftRect.right + 12 &&
+                      clientY >= leftRect.top - 30 && clientY <= leftRect.bottom + 30);
+      const isRight = (clientX >= rightRect.left - 12 && clientX <= rightRect.right + 25 &&
+                       clientY >= rightRect.top - 30 && clientY <= rightRect.bottom + 30);
+
+      if (isLeft) {
+        keysP1.left = true;
+        keysP1.right = false;
+        btnLeft.classList.add('active');
+        btnRight.classList.remove('active');
+      } else if (isRight) {
+        keysP1.right = true;
+        keysP1.left = false;
+        btnRight.classList.add('active');
+        btnLeft.classList.remove('active');
+      } else {
+        keysP1.left = false;
+        keysP1.right = false;
+        btnLeft.classList.remove('active');
+        btnRight.classList.remove('active');
+      }
+    };
+
+    touchDpad.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      sound.init();
+      if (dpadTouchId === null && e.changedTouches.length > 0) {
+        const touch = e.changedTouches[0];
+        dpadTouchId = touch.identifier;
+        processDpadPosition(touch.clientX, touch.clientY);
+        if (navigator.vibrate) navigator.vibrate(10);
+      }
+    }, { passive: false });
+
+    touchDpad.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === dpadTouchId) {
+          processDpadPosition(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+          break;
+        }
+      }
+    }, { passive: false });
+
+    const endDpadTouch = (e) => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === dpadTouchId) {
+          dpadTouchId = null;
+          keysP1.left = false;
+          keysP1.right = false;
+          btnLeft.classList.remove('active');
+          btnRight.classList.remove('active');
+          break;
+        }
+      }
+    };
+
+    touchDpad.addEventListener('touchend', endDpadTouch, { passive: false });
+    touchDpad.addEventListener('touchcancel', endDpadTouch, { passive: false });
+
+    // PC / Mouse yordamida tekshirish imkoniyati
+    btnLeft.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      sound.init();
+      keysP1.left = true;
+      btnLeft.classList.add('active');
+    });
+    btnLeft.addEventListener('mouseup', () => {
+      keysP1.left = false;
+      btnLeft.classList.remove('active');
+    });
+    btnLeft.addEventListener('mouseleave', () => {
+      keysP1.left = false;
+      btnLeft.classList.remove('active');
+    });
+
+    btnRight.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      sound.init();
+      keysP1.right = true;
+      btnRight.classList.add('active');
+    });
+    btnRight.addEventListener('mouseup', () => {
+      keysP1.right = false;
+      btnRight.classList.remove('active');
+    });
+    btnRight.addEventListener('mouseleave', () => {
+      keysP1.right = false;
+      btnRight.classList.remove('active');
+    });
+  }
+
+  // 2. Action Buttons (Jump & Attack)
+  const setupActionButton = (btn, actionType) => {
+    if (!btn) return;
+    let actionTouchId = null;
+
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      sound.init();
+      const touch = e.changedTouches[0];
+      actionTouchId = touch.identifier;
+      btn.classList.add('active');
+      if (navigator.vibrate) navigator.vibrate(12);
+
+      if (actionType === 'jump') {
+        keysP1.jump = true;
+        if (gameState === 'PLAYING' && player1) player1.tryJump();
+      } else if (actionType === 'attack') {
+        keysP1.attack = true;
+        if (gameState === 'PLAYING' && player1) player1.tryAttack();
+      }
+    }, { passive: false });
+
+    const endActionTouch = (e) => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === actionTouchId) {
+          actionTouchId = null;
+          btn.classList.remove('active');
+          if (actionType === 'jump') keysP1.jump = false;
+          if (actionType === 'attack') keysP1.attack = false;
+          break;
+        }
+      }
+    };
+
+    btn.addEventListener('touchend', endActionTouch, { passive: false });
+    btn.addEventListener('touchcancel', endActionTouch, { passive: false });
+
+    // PC / Mouse yordamida bosish
+    btn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      sound.init();
+      btn.classList.add('active');
+      if (actionType === 'jump') {
+        keysP1.jump = true;
+        if (gameState === 'PLAYING' && player1) player1.tryJump();
+      } else if (actionType === 'attack') {
+        keysP1.attack = true;
+        if (gameState === 'PLAYING' && player1) player1.tryAttack();
+      }
+    });
+    const mouseRelease = () => {
+      btn.classList.remove('active');
+      if (actionType === 'jump') keysP1.jump = false;
+      if (actionType === 'attack') keysP1.attack = false;
+    };
+    btn.addEventListener('mouseup', mouseRelease);
+    btn.addEventListener('mouseleave', mouseRelease);
+  };
+
+  setupActionButton(btnJump, 'jump');
+  setupActionButton(btnAttack, 'attack');
+}
+
+setupMobileControls();
+
+// Portret/Landshaft orientatsiyasi
 const rotateHint = document.getElementById('rotate-hint');
 const dismissRotateHint = document.getElementById('dismiss-rotate-hint');
 let rotateHintDismissed = false;
+let rotateHintTimer = null;
 
 function checkOrientation() {
-  if (rotateHintDismissed || !rotateHint) return;
+  if (!rotateHint) return;
   const isPortrait = window.innerHeight > window.innerWidth && window.innerWidth <= 850;
-  if (isPortrait) {
+  if (isPortrait && !rotateHintDismissed) {
     rotateHint.classList.add('show-hint');
+    if (rotateHintTimer) clearTimeout(rotateHintTimer);
+    rotateHintTimer = setTimeout(() => {
+      rotateHint.classList.remove('show-hint');
+    }, 5000);
   } else {
     rotateHint.classList.remove('show-hint');
   }
@@ -751,6 +959,7 @@ function checkOrientation() {
 if (dismissRotateHint) {
   dismissRotateHint.addEventListener('click', () => {
     rotateHintDismissed = true;
+    if (rotateHintTimer) clearTimeout(rotateHintTimer);
     rotateHint.classList.remove('show-hint');
   });
 }
@@ -759,13 +968,35 @@ window.addEventListener('resize', checkOrientation);
 window.addEventListener('orientationchange', checkOrientation);
 checkOrientation();
 
-soundBtn.addEventListener('click', () => {
-  sound.init();
-  const isMuted = sound.toggleMute();
-  soundBtn.textContent = isMuted ? '🔇' : '🔊';
-});
+// Ovoz holati va UI sinxronizatsiyasi
+function updateSoundUI() {
+  const isMuted = sound.muted;
+  if (soundBtn) soundBtn.textContent = isMuted ? '🔇' : '🔊';
+  if (bmSoundIcon) bmSoundIcon.textContent = isMuted ? '🔇' : '🔊';
+  if (bmSoundTitle) bmSoundTitle.textContent = isMuted ? 'Ovoz: O‘chirilgan' : 'Ovoz: Yoqilgan';
+  if (bmSoundSwitch) {
+    if (isMuted) bmSoundSwitch.classList.remove('on');
+    else bmSoundSwitch.classList.add('on');
+  }
+}
 
-fullscreenBtn.addEventListener('click', () => {
+function toggleSound() {
+  sound.init();
+  sound.toggleMute();
+  updateSoundUI();
+}
+
+if (soundBtn) soundBtn.addEventListener('click', toggleSound);
+
+// To'liq ekran rejimi va UI sinxronizatsiyasi
+function updateFullscreenUI() {
+  const isFs = !!document.fullscreenElement;
+  if (fullscreenBtn) fullscreenBtn.textContent = isFs ? '✖' : '⛶';
+  if (bmFullscreenIcon) bmFullscreenIcon.textContent = isFs ? '✖' : '⛶';
+  if (bmFullscreenTitle) bmFullscreenTitle.textContent = isFs ? 'Oddiy Ekran' : 'To‘liq Ekran';
+}
+
+function toggleFullscreen() {
   if (!document.fullscreenElement) {
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen().catch(() => {});
@@ -775,20 +1006,135 @@ fullscreenBtn.addEventListener('click', () => {
       document.exitFullscreen().catch(() => {});
     }
   }
-});
+}
 
-document.addEventListener('fullscreenchange', () => {
-  if (document.fullscreenElement) {
-    fullscreenBtn.textContent = '✖';
-  } else {
-    fullscreenBtn.textContent = '⛶';
-  }
-});
+if (fullscreenBtn) fullscreenBtn.addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', updateFullscreenUI);
 
-restartQuickBtn.addEventListener('click', () => {
+if (restartQuickBtn) {
+  restartQuickBtn.addEventListener('click', () => {
+    sound.init();
+    startNewGame();
+  });
+}
+
+// ==========================================
+// BURGER MENYU VA MODALLAR BOSHQARUVI
+// ==========================================
+let wasPlayingBeforeMenu = false;
+
+function openBurgerMenu() {
   sound.init();
-  startNewGame();
-});
+  updateSoundUI();
+  updateFullscreenUI();
+  if (gameMode === '2P') {
+    if (bmModeTitle) bmModeTitle.textContent = 'Rejim: 2 O‘yinchi';
+    if (bmModeSub) bmModeSub.textContent = 'Mario & Luigi (2P)';
+    if (bmModeIcon) bmModeIcon.textContent = '🍄';
+  } else {
+    if (bmModeTitle) bmModeTitle.textContent = 'Rejim: 1 O‘yinchi';
+    if (bmModeSub) bmModeSub.textContent = 'Mario Yakkaxon (1P)';
+    if (bmModeIcon) bmModeIcon.textContent = '🔴';
+  }
+
+  if (gameState === 'PLAYING') {
+    wasPlayingBeforeMenu = true;
+    gameState = 'PAUSED';
+  } else {
+    wasPlayingBeforeMenu = false;
+  }
+
+  if (burgerMenuModal) {
+    burgerMenuModal.classList.add('active');
+  }
+  updateMobileControlsVisibility();
+}
+
+function closeBurgerMenu() {
+  if (burgerMenuModal) {
+    burgerMenuModal.classList.remove('active');
+  }
+  if (wasPlayingBeforeMenu) {
+    gameState = 'PLAYING';
+    wasPlayingBeforeMenu = false;
+  }
+  updateMobileControlsVisibility();
+}
+
+if (burgerMenuBtn) burgerMenuBtn.addEventListener('click', openBurgerMenu);
+if (closeBurgerBtn) closeBurgerBtn.addEventListener('click', closeBurgerMenu);
+if (burgerMenuBackdrop) burgerMenuBackdrop.addEventListener('click', closeBurgerMenu);
+if (bmResumeBtn) bmResumeBtn.addEventListener('click', closeBurgerMenu);
+
+if (bmLevelsBtn) {
+  bmLevelsBtn.addEventListener('click', () => {
+    closeBurgerMenu();
+    openLevelsModal();
+  });
+}
+
+if (bmSoundBtn) {
+  bmSoundBtn.addEventListener('click', () => {
+    toggleSound();
+  });
+}
+
+if (bmFullscreenBtn) {
+  bmFullscreenBtn.addEventListener('click', () => {
+    toggleFullscreen();
+  });
+}
+
+if (bmRestartBtn) {
+  bmRestartBtn.addEventListener('click', () => {
+    closeBurgerMenu();
+    sound.init();
+    startNewGame();
+  });
+}
+
+if (bmModeBtn) {
+  bmModeBtn.addEventListener('click', () => {
+    sound.init();
+    const newMode = (gameMode === '2P') ? '1P' : '2P';
+    setGameMode(newMode);
+    if (newMode === '2P') {
+      bmModeTitle.textContent = 'Rejim: 2 O‘yinchi';
+      bmModeSub.textContent = 'Mario & Luigi (2P)';
+      bmModeIcon.textContent = '🍄';
+    } else {
+      bmModeTitle.textContent = 'Rejim: 1 O‘yinchi';
+      bmModeSub.textContent = 'Mario Yakkaxon (1P)';
+      bmModeIcon.textContent = '🔴';
+    }
+  });
+}
+
+// Boshqaruv va Qoidalar modali
+function openHelpModal() {
+  sound.init();
+  closeBurgerMenu();
+  if (helpModal) {
+    helpModal.classList.add('active');
+  }
+  updateMobileControlsVisibility();
+}
+
+function closeHelpModal() {
+  if (helpModal) {
+    helpModal.classList.remove('active');
+  }
+  updateMobileControlsVisibility();
+}
+
+if (bmHelpBtn) bmHelpBtn.addEventListener('click', openHelpModal);
+if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelpModal);
+if (helpOkBtn) helpOkBtn.addEventListener('click', closeHelpModal);
+
+// Mobil brauzerlarda noxush imo-ishoralarni (pinch-zoom, scroll) to'xtatish
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+document.addEventListener('gesturechange', (e) => e.preventDefault());
+document.addEventListener('gestureend', (e) => e.preventDefault());
 
 let toastTimeout = null;
 function showToast(text) {
@@ -4697,7 +5043,12 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
 // 10. BOSQICHLARNI BOSHQARISH VA MODALLAR
 // ==========================================
 function updateHUD() {
-  levelDisplay.textContent = `${currentLevelIndex + 1}-Bosqich`;
+  const isMobile = window.innerWidth <= 850;
+  if (isMobile) {
+    levelDisplay.textContent = `${currentLevelIndex + 1}-B.`;
+  } else {
+    levelDisplay.textContent = `${currentLevelIndex + 1}-Bosqich`;
+  }
 
   // 1-O'yinchi (Qizil)
   let p1Hearts = '';
@@ -4705,7 +5056,7 @@ function updateHUD() {
     p1Hearts += (player1.alive && i < player1.lives) ? '❤️' : '🖤';
   }
   p1LivesDisplay.textContent = p1Hearts;
-  p1CoinsDisplay.textContent = `${player1.coins * 10} (${player1.coins})`;
+  p1CoinsDisplay.textContent = isMobile ? `${player1.coins * 10}` : `${player1.coins * 10} (${player1.coins})`;
 
   // 2-O'yinchi (Ko'k)
   if (gameMode === '2P') {
@@ -4715,19 +5066,22 @@ function updateHUD() {
       p2Hearts += (player2.alive && i < player2.lives) ? '❤️' : '🖤';
     }
     p2LivesDisplay.textContent = p2Hearts;
-    p2CoinsDisplay.textContent = `${player2.coins * 10} (${player2.coins})`;
+    p2CoinsDisplay.textContent = isMobile ? `${player2.coins * 10}` : `${player2.coins * 10} (${player2.coins})`;
   } else {
     if (p2Hud) p2Hud.style.display = 'none';
   }
 
   // Kalit holati
-  if (teamHasKey || player1.hasKey || (player2 && player2.hasKey)) {
-    keyDisplay.textContent = '✅ Bor';
+  const hasKey = teamHasKey || player1.hasKey || (player2 && player2.hasKey);
+  if (hasKey) {
+    keyDisplay.textContent = isMobile ? '✅' : '✅ Bor';
     keyDisplay.classList.add('has-key');
   } else {
-    keyDisplay.textContent = 'Yo‘q';
+    keyDisplay.textContent = isMobile ? '—' : 'Yo‘q';
     keyDisplay.classList.remove('has-key');
   }
+
+  updateMobileControlsVisibility();
 }
 
 function startNewGame() {
@@ -4745,7 +5099,10 @@ function startNewGame() {
   victoryScreen.classList.remove('active');
   if (levelsScreen) levelsScreen.classList.remove('active');
   if (quizScreen) quizScreen.classList.remove('active');
+  if (burgerMenuModal) burgerMenuModal.classList.remove('active');
+  if (helpModal) helpModal.classList.remove('active');
   stopQuizTimer();
+  updateMobileControlsVisibility();
   const gameOverSub = gameOverScreen ? gameOverScreen.querySelector('.subtitle') : null;
   if (gameOverSub) {
     gameOverSub.textContent = 'Barcha qaroqchilar yiqildi, lekin orol sizni yana kutmoqda!';
@@ -4778,6 +5135,7 @@ function handleChestOpened() {
     }
 
     levelCompleteScreen.classList.add('active');
+    updateMobileControlsVisibility();
   } else {
     triggerFinalVictory();
   }
@@ -4796,6 +5154,7 @@ function proceedToNextLevel() {
 
   loadLevel(currentLevelIndex + 1);
   gameState = 'PLAYING';
+  updateMobileControlsVisibility();
   showToast(`🏝️ ${currentLevelIndex + 1}-Bosqich: ${LEVELS[currentLevelIndex].name}!`);
 }
 
@@ -4824,6 +5183,7 @@ function triggerFinalVictory() {
   }
 
   victoryScreen.classList.add('active');
+  updateMobileControlsVisibility();
 
   for (let i = 0; i < 50; i++) {
     const colors = ['#ffd166', '#ef476f', '#06d6a0', '#118ab2', '#ffffff', '#ffbe0b'];
@@ -4851,6 +5211,7 @@ function triggerGameOver() {
     if (gameOverP2Card) gameOverP2Card.style.display = 'none';
   }
   gameOverScreen.classList.add('active');
+  updateMobileControlsVisibility();
 }
 
 function handlePvPVictory(winner, loser) {
@@ -4873,6 +5234,7 @@ function handlePvPVictory(winner, loser) {
   }
 
   if (duelScreen) duelScreen.classList.add('active');
+  updateMobileControlsVisibility();
 
   for (let i = 0; i < 50; i++) {
     const colors = ['#ffd166', '#ef476f', '#06d6a0', '#118ab2', '#ffffff', '#ffbe0b'];
@@ -4970,12 +5332,14 @@ function openLevelsModal() {
   if (levelsScreen) {
     levelsScreen.classList.add('active');
   }
+  updateMobileControlsVisibility();
 }
 
 function closeLevelsModal() {
   if (levelsScreen) {
     levelsScreen.classList.remove('active');
   }
+  updateMobileControlsVisibility();
 }
 
 function selectLevelFromMenu(index) {
@@ -4987,6 +5351,8 @@ function selectLevelFromMenu(index) {
   levelCompleteScreen.classList.remove('active');
   victoryScreen.classList.remove('active');
   if (duelScreen) duelScreen.classList.remove('active');
+  if (burgerMenuModal) burgerMenuModal.classList.remove('active');
+  if (helpModal) helpModal.classList.remove('active');
 
   player1.resetForNewGame(80, 360);
   if (gameMode === '2P') {
@@ -4995,6 +5361,7 @@ function selectLevelFromMenu(index) {
   teamHasKey = false;
   loadLevel(index);
   gameState = 'PLAYING';
+  updateMobileControlsVisibility();
   showToast(`🚀 ${index + 1}-Bosqich: ${LEVELS[index].name}!`);
 }
 
@@ -5209,6 +5576,7 @@ function triggerQuizRescue(player, opponent = null) {
   if (quizScreen) {
     quizScreen.classList.add('active');
   }
+  updateMobileControlsVisibility();
 
   startQuizTimer();
 }
@@ -5487,4 +5855,6 @@ function gameLoop(timestamp) {
 // Boshlang'ich yuklash
 resizeCanvas();
 loadLevel(0);
+updateHUD();
+updateMobileControlsVisibility();
 requestAnimationFrame(gameLoop);

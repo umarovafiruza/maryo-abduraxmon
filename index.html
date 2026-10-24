@@ -51,14 +51,18 @@
       </div>
 
       <div class="hud-right">
-        <!-- Bosqichlar menyusi -->
-        <button id="levels-menu-btn" class="hud-btn" title="Bosqichlar ro‘yxati (1-20)">🗺️</button>
-        <!-- Ovozni yoqish/o'chirish -->
-        <button id="sound-btn" class="hud-btn" title="Ovozni yoqish/o'chirish">🔊</button>
-        <!-- To'liq ekran -->
-        <button id="fullscreen-btn" class="hud-btn" title="To‘liq ekran (Full Screen)">⛶</button>
-        <!-- Tezkor qayta boshlash -->
-        <button id="restart-quick-btn" class="hud-btn" title="Qayta boshlash">🔄</button>
+        <!-- Bosqichlar menyusi (Desktop) -->
+        <button id="levels-menu-btn" class="hud-btn desktop-only" title="Bosqichlar ro‘yxati (1-20)">🗺️</button>
+        <!-- Ovozni yoqish/o'chirish (Desktop) -->
+        <button id="sound-btn" class="hud-btn desktop-only" title="Ovozni yoqish/o'chirish">🔊</button>
+        <!-- To'liq ekran (Desktop) -->
+        <button id="fullscreen-btn" class="hud-btn desktop-only" title="To‘liq ekran (Full Screen)">⛶</button>
+        <!-- Tezkor qayta boshlash (Desktop) -->
+        <button id="restart-quick-btn" class="hud-btn desktop-only" title="Qayta boshlash">🔄</button>
+        <!-- Mobil Burger Menyu tugmasi -->
+        <button id="burger-menu-btn" class="hud-btn burger-menu-btn" title="Menyu" aria-label="Menyu">
+          <span class="burger-icon">☰</span>
+        </button>
       </div>
     </div>
 
@@ -268,32 +272,141 @@
       </div>
     </div>
 
-    <!-- Mobil / Sensorli boshqaruv tugmalari -->
+    <!-- Mobil Burger Menyu Modal / Drawer -->
+    <div id="burger-menu-modal" class="burger-menu-overlay">
+      <div id="burger-menu-backdrop" class="burger-menu-backdrop"></div>
+      <div class="burger-menu-drawer">
+        <div class="burger-menu-header">
+          <div class="burger-menu-title">
+            <span class="bm-title-icon">🍄</span>
+            <span>O‘yin Menyusi</span>
+          </div>
+          <button id="close-burger-btn" class="close-modal-btn" aria-label="Yopish">✕</button>
+        </div>
+
+        <div class="burger-menu-body">
+          <button id="bm-levels-btn" class="bm-item-btn" type="button">
+            <span class="bm-item-icon">🗺️</span>
+            <div class="bm-item-info">
+              <span class="bm-item-title">Bosqichlar Tanlash</span>
+              <span class="bm-item-sub">1-20 ta qiziqarli dunyolar</span>
+            </div>
+            <span class="bm-item-arrow">›</span>
+          </button>
+
+          <button id="bm-sound-btn" class="bm-item-btn" type="button">
+            <span class="bm-item-icon" id="bm-sound-icon">🔊</span>
+            <div class="bm-item-info">
+              <span class="bm-item-title" id="bm-sound-title">Ovoz: Yoqilgan</span>
+              <span class="bm-item-sub">Musiqa va tovushlar</span>
+            </div>
+            <span class="bm-switch on" id="bm-sound-switch"></span>
+          </button>
+
+          <button id="bm-fullscreen-btn" class="bm-item-btn" type="button">
+            <span class="bm-item-icon" id="bm-fullscreen-icon">⛶</span>
+            <div class="bm-item-info">
+              <span class="bm-item-title" id="bm-fullscreen-title">To‘liq Ekran</span>
+              <span class="bm-item-sub">Keng formatda o‘ynash</span>
+            </div>
+            <span class="bm-item-arrow">›</span>
+          </button>
+
+          <button id="bm-restart-btn" class="bm-item-btn" type="button">
+            <span class="bm-item-icon">🔄</span>
+            <div class="bm-item-info">
+              <span class="bm-item-title">Qayta Boshlash</span>
+              <span class="bm-item-sub">Joriy bosqichni qayta o‘ynash</span>
+            </div>
+            <span class="bm-item-arrow">›</span>
+          </button>
+
+          <button id="bm-mode-btn" class="bm-item-btn" type="button">
+            <span class="bm-item-icon" id="bm-mode-icon">🍄</span>
+            <div class="bm-item-info">
+              <span class="bm-item-title" id="bm-mode-title">Rejim: 2 O‘yinchi</span>
+              <span class="bm-item-sub" id="bm-mode-sub">1P / 2P almashtirish</span>
+            </div>
+            <span class="bm-item-arrow">🔁</span>
+          </button>
+
+          <button id="bm-help-btn" class="bm-item-btn" type="button">
+            <span class="bm-item-icon">❓</span>
+            <div class="bm-item-info">
+              <span class="bm-item-title">Boshqaruv & Qoidalar</span>
+              <span class="bm-item-sub">O‘yin sirlari va qo‘llanma</span>
+            </div>
+            <span class="bm-item-arrow">›</span>
+          </button>
+        </div>
+
+        <div class="burger-menu-footer">
+          <button id="bm-resume-btn" class="btn-primary" type="button" style="width: 100%;">
+            <span>O‘yinni Davom Ettirish ▶</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boshqaruv va Qoidalar Modali -->
+    <div id="help-modal" class="screen-overlay">
+      <div class="dialog-box help-dialog-box">
+        <div class="levels-header" style="margin-bottom: 12px;">
+          <h2 style="color: #9a031e; margin: 0;">🎮 Boshqaruv & Qoidalar</h2>
+          <button id="close-help-btn" class="close-modal-btn" aria-label="Yopish">✕</button>
+        </div>
+        <div class="help-content-scroll">
+          <div class="help-section">
+            <h3 style="color: #bb3e03; font-size: 1.1rem; margin-bottom: 6px;">📱 Mobil Telefon Boshqaruvi:</h3>
+            <p style="margin-bottom: 4px;"><strong>◀ / ▶:</strong> Chapga va O‘ngga yugurish</p>
+            <p style="margin-bottom: 4px;"><strong>▲ SAKRASH (Qizil):</strong> Baland sakrash (trubalar va bloklarga)</p>
+            <p style="margin-bottom: 8px;"><strong>⚔️ ZARBA (Sariq):</strong> Olovli / Yulduz zarbasi va qilich hujumi</p>
+          </div>
+          <div class="help-section" style="margin-top: 10px;">
+            <h3 style="color: #0077b6; font-size: 1.1rem; margin-bottom: 6px;">💻 Klaviatura Boshqaruvi:</h3>
+            <p style="margin-bottom: 4px;"><strong>🔴 Mario (1-O‘yinchi):</strong> A / D — Yurish, W / Space — Sakrash, F / S — Zarba</p>
+            <p style="margin-bottom: 8px;"><strong>🟢 Luigi (2-O‘yinchi):</strong> ⬅️ / ➡️ — Yurish, ⬆️ — Sakrash, ⬇️ / Enter — Zarba</p>
+          </div>
+          <div class="help-section" style="margin-top: 10px;">
+            <h3 style="color: #2b9348; font-size: 1.1rem; margin-bottom: 6px;">⭐ Qoidalar va Maslahatlar:</h3>
+            <p style="margin-bottom: 4px;">❓ <strong>Sirli Bloklar:</strong> Pastdan kalla bilan urib tanga va qo‘ziqorin oling!</p>
+            <p style="margin-bottom: 4px;">🐢 <strong>Dushmanlarni ezish:</strong> Ustiga sakrab tushib Goombalarni yengasiz!</p>
+            <p style="margin-bottom: 4px;">⭐ <strong>Yulduzni oling:</strong> Marra bayrog‘idan o‘tish uchun Sehrli Yulduz shart!</p>
+          </div>
+        </div>
+        <div style="margin-top: 16px;">
+          <button id="help-ok-btn" class="btn-primary" type="button">Tushundim 👍</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobil / Sensorli boshqaruv tugmalari (On-Screen Touch Controller) -->
     <div id="mobile-controls">
       <div class="touch-btn-group touch-dpad">
-        <button id="btn-left" class="touch-btn touch-btn-nav" aria-label="Chapga">◀</button>
-        <button id="btn-right" class="touch-btn touch-btn-nav" aria-label="O‘ngga">▶</button>
+        <button id="btn-left" class="touch-btn touch-btn-nav touch-btn-left" aria-label="Chapga">
+          <span class="touch-icon">◀</span>
+        </button>
+        <button id="btn-right" class="touch-btn touch-btn-nav touch-btn-right" aria-label="O‘ngga">
+          <span class="touch-icon">▶</span>
+        </button>
       </div>
       <div class="touch-btn-group touch-actions">
-        <button id="btn-attack" class="touch-btn touch-btn-attack" aria-label="Qilich">
-          <span class="jump-arrow">⚔️</span>
-          <span class="jump-text">QILICH</span>
+        <button id="btn-attack" class="touch-btn touch-btn-attack" aria-label="Zarba">
+          <span class="touch-act-icon">⚔️</span>
+          <span class="touch-act-text">ZARBA</span>
         </button>
         <button id="btn-jump" class="touch-btn touch-btn-jump" aria-label="Sakrash">
-          <span class="jump-arrow">▲</span>
-          <span class="jump-text">SAKRASH</span>
+          <span class="touch-act-icon">▲</span>
+          <span class="touch-act-text">SAKRASH</span>
         </button>
       </div>
     </div>
 
-    <!-- Telefonni yonboshga burish maslahati (Portret rejimda) -->
-    <div id="rotate-hint" class="rotate-hint-overlay">
-      <div class="rotate-hint-box">
-        <div class="rotate-icon">📱🔄</div>
-        <h2>Ekranni yonboshga buring</h2>
-        <p>Qulay va to‘liq o‘ynash uchun telefoningizni gorizontal (Landscape) holatga o‘giring!</p>
-        <button id="dismiss-rotate-hint" class="dismiss-btn">Baribir davom etish ✕</button>
-      </div>
+    <!-- Telefonni yonboshga burish maslahati (Portret rejimda nozik toast) -->
+    <div id="rotate-hint" class="rotate-hint-pill">
+      <span class="rotate-hint-icon">📱🔄</span>
+      <span class="rotate-hint-text">Qulayroq o‘ynash uchun telefoningizni yonboshga buring!</span>
+      <button id="dismiss-rotate-hint" class="rotate-hint-close" aria-label="Yopish">✕</button>
     </div>
   </div>
 
