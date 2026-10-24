@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0d1b2a">
+  <title>🍄 Super Mario & Luigi Sarguzashti</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Asosiy o'yin maydoni -->
+  <div id="game-container">
+    <canvas id="game-canvas" width="960" height="540"></canvas>
+
+    <!-- Yuqori HUD paneli -->
+    <div id="hud">
+      <div class="hud-left">
+        <!-- Bosqich -->
+        <button id="level-btn" class="hud-panel hud-clickable-panel" title="Bosqichlar ro‘yxati (1-20)">
+          <span class="hud-icon">🗺️</span>
+          <span id="level-display">1-Bosqich</span>
+        </button>
+
+        <!-- 1-O'yinchi (Mario) -->
+        <div class="hud-panel p1-hud-panel">
+          <span class="p-badge p1-badge">🔴 MARIO</span>
+          <span id="p1-lives-display">❤️❤️❤️</span>
+          <span class="hud-sep">|</span>
+          <span class="hud-icon">🪙</span>
+          <span id="p1-coins-display">0</span>
+        </div>
+
+        <!-- 2-O'yinchi (Luigi) -->
+        <div class="hud-panel p2-hud-panel" id="p2-hud">
+          <span class="p-badge p2-badge">🟢 LUIGI</span>
+          <span id="p2-lives-display">❤️❤️❤️</span>
+          <span class="hud-sep">|</span>
+          <span class="hud-icon">🪙</span>
+          <span id="p2-coins-display">0</span>
+        </div>
+
+        <!-- Yulduz holati -->
+        <div class="hud-panel">
+          <span class="hud-icon">⭐</span>
+          <span id="key-display">Yo‘q</span>
+        </div>
+      </div>
+
+      <div class="hud-right">
+        <!-- Bosqichlar menyusi -->
+        <button id="levels-menu-btn" class="hud-btn" title="Bosqichlar ro‘yxati (1-20)">🗺️</button>
+        <!-- Ovozni yoqish/o'chirish -->
+        <button id="sound-btn" class="hud-btn" title="Ovozni yoqish/o'chirish">🔊</button>
+        <!-- To'liq ekran -->
+        <button id="fullscreen-btn" class="hud-btn" title="To‘liq ekran (Full Screen)">⛶</button>
+        <!-- Tezkor qayta boshlash -->
+        <button id="restart-quick-btn" class="hud-btn" title="Qayta boshlash">🔄</button>
+      </div>
+    </div>
+
+    <!-- Yulduzsiz bayroqqa borgan paytdagi ogohlantirish -->
+    <div id="toast-message">⚠️ Avval Sehrli Yulduzni toping!</div>
+
+    <!-- Start Screen (Boshlang'ich oyna) -->
+    <div id="start-screen" class="screen-overlay active">
+      <div class="dialog-box">
+        <h1>🍄 Super Mario & Luigi Sarguzashti</h1>
+        <p class="subtitle">Sirli Bloklar, Yashil Quvurlar va Oltin Yulduzlar</p>
+
+        <!-- Rejim tanlash (1 yoki 2 o'yinchi) -->
+        <div class="mode-select-container">
+          <button id="mode-2p-btn" class="mode-btn active" type="button">🍄 2 O‘yinchi (Mario & Luigi)</button>
+          <button id="mode-1p-btn" class="mode-btn" type="button">🔴 1 O‘yinchi (Mario Yakkaxon)</button>
+        </div>
+
+        <!-- Boshqaruv tugmalari kartasi -->
+        <div class="players-controls-card">
+          <div class="player-control-box p1-box">
+            <div class="box-title">🔴 Mario (1-O‘yinchi)</div>
+            <div class="key-row"><span class="k-key">A</span> / <span class="k-key">D</span> Chapga / O‘ngga</div>
+            <div class="key-row"><span class="k-key">W</span> yoki <span class="k-key">Space</span> Mario Sakrashi 🚀</div>
+            <div class="key-row"><span class="k-key">F</span> yoki <span class="k-key">S</span> Olovli / Yulduz Zarbasi ⭐</div>
+          </div>
+          <div class="player-control-box p2-box" id="p2-controls-card">
+            <div class="box-title">🟢 Luigi (2-O‘yinchi)</div>
+            <div class="key-row"><span class="k-key">⬅️</span> / <span class="k-key">➡️</span> Chapga / O‘ngga</div>
+            <div class="key-row"><span class="k-key">⬆️</span> Luigi Sakrashi 🚀</div>
+            <div class="key-row"><span class="k-key">⬇️</span> yoki <span class="k-key">Enter</span> Olovli / Yulduz Zarbasi ⭐</div>
+          </div>
+        </div>
+
+        <div class="rules-card">
+          <ul>
+            <li>❓ <strong>Sirli Bloklar:</strong> ? bloklarini boshingiz bilan pastdan urib, tangalar va qo‘ziqorinlarni oling!</li>
+            <li>🍄 <strong>Super Qo‘ziqorin:</strong> Bloklardan chiquvchi qo‘ziqorinlar qo‘shimcha jon va ballar bag‘ishlaydi!</li>
+            <li>🌱 <strong>Yashil Quvurlar:</strong> Mario trubalariga sakrab chiqing va yangi marralarga erishing!</li>
+            <li>🐢 <strong>Dushmanlarni ezish:</strong> Goomba va dushmanlarning ustiga sakrab ularni mahv eting!</li>
+            <li>🧠 <strong>Qutqaruvchi Fanlar Sinovi:</strong> Yiqilsangiz, savollarga to‘g‘ri javob berib jonni saqlab qoling!</li>
+          </ul>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+          <button id="start-btn" class="btn-primary">
+            <span>O‘yinni Boshlash</span> 🍄
+          </button>
+          <button id="open-levels-btn" class="btn-primary btn-secondary" type="button">
+            <span>🗺️ Bosqich Tanlash (1-20)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Duel / PvP Round Complete Screen (Bir-birini yo'q qilganda) -->
+    <div id="duel-screen" class="screen-overlay">
+      <div class="dialog-box">
+        <h1 id="duel-winner-title" style="color: #f77f00;">⚔️ Jang Yakunlandi!</h1>
+        <p class="subtitle" id="duel-winner-subtitle">G‘olib o‘yinchi raqibini dog‘da qoldirdi!</p>
+
+        <div class="score-cards-summary" style="margin-bottom: 16px;">
+          <div class="score-card-item">
+            <span class="sc-title">🔴 Mario:</span>
+            <span class="sc-val" id="duel-p1-score">0</span>
+          </div>
+          <div class="score-card-item">
+            <span class="sc-title">🟢 Luigi:</span>
+            <span class="sc-val" id="duel-p2-score">0</span>
+          </div>
+        </div>
+
+        <div id="duel-banner" class="winner-banner">👑 Jang G‘olibi: 🔴 Mario!</div>
+
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <button id="duel-rematch-btn" class="btn-primary btn-danger">
+            <span>Qayta Jang (Revansh)</span> 🔄
+          </button>
+          <button id="duel-next-btn" class="btn-primary">
+            <span>Keyingi Bosqich</span> ➡️
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz Rescue Screen (Qutqaruvchi Fanlar Sinovi: Matematika, Ingliz tili, Geografiya) -->
+    <div id="quiz-screen" class="screen-overlay">
+      <div class="dialog-box quiz-dialog-box">
+        <div class="quiz-header-bar">
+          <span id="quiz-subject-badge" class="quiz-subject-badge badge-math">📐 Matematika</span>
+          <span class="quiz-timer-badge">⏳ <span id="quiz-timer-text">20s</span></span>
+        </div>
+
+        <h2 id="quiz-title" class="quiz-title">🧠 Qutqaruvchi Fanlar Sinovi!</h2>
+        <p class="quiz-instructions">
+          To‘g‘ri topsangiz — <strong>o‘yin shu yerdan davom etadi!</strong><br>
+          Noto‘g‘ri bo‘lsa — <strong>0-bosqichga qaytasiz!</strong>
+        </p>
+
+        <!-- Vaqt chizig'i -->
+        <div class="quiz-timer-track">
+          <div id="quiz-timer-progress" class="quiz-timer-progress"></div>
+        </div>
+
+        <!-- Savol kartasi -->
+        <div class="quiz-card">
+          <div id="quiz-flag-box" class="quiz-flag-box" style="display: none;"></div>
+          <div id="quiz-question-text" class="quiz-question-text">Savol yuklanmoqda...</div>
+        </div>
+
+        <!-- 4 ta variant (A, B, C, D) -->
+        <div id="quiz-options-container" class="quiz-options-grid"></div>
+
+        <!-- Natija xabari -->
+        <div id="quiz-feedback-box" class="quiz-feedback-box"></div>
+      </div>
+    </div>
+
+    <!-- Game Over Screen (Mag'lubiyat oynasi) -->
+    <div id="game-over-screen" class="screen-overlay">
+      <div class="dialog-box">
+        <h1 style="color: #d90429;">💀 O‘yin Tugadi!</h1>
+        <p class="subtitle">Mario va Luigi yiqildi, lekin yangi sarguzasht sizni kutmoqda!</p>
+
+        <div class="score-cards-summary">
+          <div class="score-card-item">
+            <span class="sc-title">🔴 Mario:</span>
+            <span class="sc-val" id="game-over-p1-score">0</span> 🪙
+          </div>
+          <div class="score-card-item" id="game-over-p2-card">
+            <span class="sc-title">🟢 Luigi:</span>
+            <span class="sc-val" id="game-over-p2-score">0</span> 🪙
+          </div>
+        </div>
+
+        <div>
+          <button id="retry-btn" class="btn-primary btn-danger">
+            <span>Qayta Urinish</span> 🔄
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Level Complete Screen (Bosqich yakunlanganida) -->
+    <div id="level-complete-screen" class="screen-overlay">
+      <div class="dialog-box">
+        <h1 style="color: #2b9348;">🎉 Bosqich Fath Etildi!</h1>
+        <p class="subtitle" id="level-complete-title">1-Bosqich: Tropik Sohil</p>
+
+        <div class="score-cards-summary" style="margin-bottom: 14px;">
+          <div class="score-card-item">
+            <span class="sc-title">🔴 Mario:</span>
+            <span class="sc-val" id="level-p1-stats">0</span> 🪙
+          </div>
+          <div class="score-card-item" id="level-p2-card">
+            <span class="sc-title">🟢 Luigi:</span>
+            <span class="sc-val" id="level-p2-stats">0</span> 🪙
+          </div>
+        </div>
+
+        <div id="level-complete-winner" class="winner-banner"></div>
+
+        <div>
+          <button id="next-level-btn" class="btn-primary">
+            <span>Keyingi Bosqich ➡️</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Victory Screen (Final G'alaba oynasi - barcha bosqichlar) -->
+    <div id="victory-screen" class="screen-overlay">
+      <div class="dialog-box">
+        <h1 style="color: #f77f00;">👑 SUPER MARIO QAHRAMONLARI! 🍄</h1>
+        <p class="subtitle">Barcha 20 ta dunyo fath etildi va afsonaviy xazina qo‘lga kiritildi!</p>
+
+        <div class="score-cards-summary" style="margin-bottom: 14px;">
+          <div class="score-card-item">
+            <span class="sc-title">🔴 Mario:</span>
+            <span class="sc-val" id="victory-p1-score">0</span> 🌟
+          </div>
+          <div class="score-card-item" id="victory-p2-card">
+            <span class="sc-title">🟢 Luigi:</span>
+            <span class="sc-val" id="victory-p2-score">0</span> 🌟
+          </div>
+        </div>
+
+        <div id="victory-champion-text" class="winner-banner"></div>
+
+        <div>
+          <button id="play-again-btn" class="btn-primary">
+            <span>Boshidan O‘ynash</span> 🍄
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bosqichlar Tanlash Paneli (Level Select Screen) -->
+    <div id="levels-screen" class="screen-overlay">
+      <div class="dialog-box levels-dialog-box">
+        <div class="levels-header">
+          <h2 style="color: #9a031e; margin: 0;">🗺️ Bosqichni Tanlang</h2>
+          <button id="close-levels-btn" class="close-modal-btn" title="Yopish">✕</button>
+        </div>
+        <p class="subtitle" style="margin-bottom: 14px;">20 ta o‘ziga xos bosqich: qiyinlik darajasi ortib boradi, har xil sarguzashtlar va kreativ yo‘llar!</p>
+        <div id="levels-grid" class="levels-grid"></div>
+      </div>
+    </div>
+
+    <!-- Mobil / Sensorli boshqaruv tugmalari -->
+    <div id="mobile-controls">
+      <div class="touch-btn-group touch-dpad">
+        <button id="btn-left" class="touch-btn touch-btn-nav" aria-label="Chapga">◀</button>
+        <button id="btn-right" class="touch-btn touch-btn-nav" aria-label="O‘ngga">▶</button>
+      </div>
+      <div class="touch-btn-group touch-actions">
+        <button id="btn-attack" class="touch-btn touch-btn-attack" aria-label="Qilich">
+          <span class="jump-arrow">⚔️</span>
+          <span class="jump-text">QILICH</span>
+        </button>
+        <button id="btn-jump" class="touch-btn touch-btn-jump" aria-label="Sakrash">
+          <span class="jump-arrow">▲</span>
+          <span class="jump-text">SAKRASH</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Telefonni yonboshga burish maslahati (Portret rejimda) -->
+    <div id="rotate-hint" class="rotate-hint-overlay">
+      <div class="rotate-hint-box">
+        <div class="rotate-icon">📱🔄</div>
+        <h2>Ekranni yonboshga buring</h2>
+        <p>Qulay va to‘liq o‘ynash uchun telefoningizni gorizontal (Landscape) holatga o‘giring!</p>
+        <button id="dismiss-rotate-hint" class="dismiss-btn">Baribir davom etish ✕</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
