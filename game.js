@@ -1523,7 +1523,9 @@ class QuestionBlock {
       } else {
         this.coinAnim = 1.0;
         sound.playCoin();
-        player.coins += 1;
+        if (player) {
+          player.coins = (player.coins || 0) + 1;
+        }
         updateHUD();
         floatingTexts.push(new FloatingText(this.x + 18, this.y - 12, '+10 🪙', '#fcc419'));
         spawnParticles(this.x + 18, this.y, 8, '#fcc419', 3);
@@ -1593,9 +1595,10 @@ class QuestionBlock {
 
     if (this.coinAnim > 0) {
       const coinY = drawY - (1 - this.coinAnim) * 42;
+      const coinRadiusX = Math.max(1, Math.abs(8 * Math.cos(Date.now() * 0.02)));
       ctx.fillStyle = '#fcc419';
       ctx.beginPath();
-      ctx.ellipse(drawX + this.width / 2, coinY, 8 * Math.cos(Date.now() * 0.02), 11, 0, 0, Math.PI * 2);
+      ctx.ellipse(drawX + this.width / 2, coinY, coinRadiusX, 11, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = '#b45309';
       ctx.lineWidth = 1.5;
@@ -5830,25 +5833,29 @@ function renderScene() {
 }
 
 function gameLoop(timestamp) {
-  const current = timestamp || performance.now();
-  if (!lastFrameTime) lastFrameTime = current;
-  let dt = current - lastFrameTime;
-  lastFrameTime = current;
+  try {
+    const current = timestamp || performance.now();
+    if (!lastFrameTime) lastFrameTime = current;
+    let dt = current - lastFrameTime;
+    lastFrameTime = current;
 
-  // Fon / lag spike himoyasi
-  if (dt > 100) dt = 100;
-  if (dt < 0 || isNaN(dt)) dt = FIXED_STEP;
-  accumulator += dt;
+    // Fon / lag spike himoyasi
+    if (dt > 100) dt = 100;
+    if (dt < 0 || isNaN(dt)) dt = FIXED_STEP;
+    accumulator += dt;
 
-  let steps = 0;
-  while (accumulator >= FIXED_STEP && steps < 5) {
-    updateGameLogic();
-    accumulator -= FIXED_STEP;
-    steps++;
+    let steps = 0;
+    while (accumulator >= FIXED_STEP && steps < 5) {
+      updateGameLogic();
+      accumulator -= FIXED_STEP;
+      steps++;
+    }
+    if (accumulator > FIXED_STEP * 5) accumulator = 0;
+
+    renderScene();
+  } catch (err) {
+    console.error("Game loop error:", err);
   }
-  if (accumulator > FIXED_STEP * 5) accumulator = 0;
-
-  renderScene();
   requestAnimationFrame(gameLoop);
 }
 
